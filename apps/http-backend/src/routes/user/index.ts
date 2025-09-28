@@ -1,35 +1,56 @@
 import { Router } from "express";
 
-const userRouter = Router();
-import bcrypt from 'bcrypt';
+const userRouter: Router = Router();
+import bcrypt from "bcrypt";
 import { Jwt } from "jsonwebtoken";
-import {CreateUserSchema, UserLoginSchema} from "@repo/zod/types"
+import { CreateUserSchema, UserLoginSchema } from "@repo/zod/types";
+import prisma from "@repo/db/client";
 
+userRouter.post("/signup", async (req, res) => {
+  const { username, firstName, lastName, password } = req.body;
 
+  if (!username || !firstName || !lastName || !password) {
+    return res
+      .json({
+        message: "Please fill all the required fields!",
+      })
+      .status(500);
+  }
 
-userRouter.post('/signup', async(req, res)=>{
-const {username, firstName, lastName, password} = req.body;
+  const parsedData = CreateUserSchema.safeParse(req.body);
 
-if (!username || !firstName || !lastName || !password){
-    return res.json({
-        message: 'Please fill all the required fields!'
-    }).status(500);
-};
+  if (!parsedData.success) {
+    return res
+      .json({
+        message: "Invalid inputs!",
+      })
+      .status(500);
+  }
 
-const parsedData = CreateUserSchema.safeParse(req.body);
+  const hashedPassword = await bcrypt.hash(password, 3);
 
-if (!parsedData.success){
-    return res.json({
-        message:"Invalid inputs!"
-    }).status(500);
-};
+  try {
+    await prisma.user.create({
+      data: {
+        username: parsedData.data.username,
+        firstName: parsedData.data.firstName,
+        lastName: parsedData.data.lastName,
+        password: parsedData.data.password,
+      },
+    });
+    console.log("User Created Successuly");
+    return res.status(201).json({
+      message: "User signed Up !!",
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      message: "Internal Server Error",
+    });
+  }
+});
 
-const hashedPassword = await bcrypt.hash(password,3);
-
-})
-
-
-userRouter.post('/signin', async(req,res)=>{
+userRouter.post("/signin", async (req, res) => {
   const { username, password } = req.body;
 
   if (!username || !password) {
@@ -48,6 +69,7 @@ userRouter.post('/signin', async(req,res)=>{
   }
 
   // Match the password and then make the token and sign the token with user id
-})
+});
 
 
+export default userRouter;
