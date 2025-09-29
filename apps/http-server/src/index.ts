@@ -87,7 +87,39 @@ app.post("/signin", async (req: Request, res: Response) => {
   };
 });
 
-app.post("/create-room", middleware, async (req: Request, res: Response) => {});
+app.post("/room", middleware, async (req: Request, res: Response) => {
+
+  const parsedData = CreateRoomSchema.safeParse(req.body);
+
+  if(!parsedData.success){
+    return res.status(500).json({
+      message:"Invalid inputs"
+    });
+  };
+
+  const userId = req.id;
+  console.log(userId)
+  console.log(parsedData.data)
+
+  try {
+    const room =  await prismaClient.room.create({
+      data:{
+        slug: parsedData.data.name,
+        admin: {connect:{id:String(userId)}}
+      }
+    });
+    return res.status(201).json({
+      roomId: room.id
+    })
+  } catch (error) {
+    console.log(error);
+    return res.json({
+      message:"Internal Server Error"
+    }).status(500);
+    
+  }
+
+});
 
 
 app.listen(3001);

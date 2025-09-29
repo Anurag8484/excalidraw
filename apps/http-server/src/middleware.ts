@@ -21,8 +21,8 @@ export function middleware(req:Request, res:Response, next:NextFunction){
 
 
     const decoded = jwt.verify(token, JWT_SECRET);
-    if (decoded || (typeof decoded === 'object' && ("id" in decoded))){
-        req.id = (decoded as JwtPayload).id as string;
+    if (decoded || (typeof decoded === 'object' && ("userId" in decoded))){
+        req.id = (decoded as JwtPayload).userId as string;
         next();
     }else{
         return res.status(403).json({

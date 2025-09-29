@@ -30,7 +30,7 @@ model User{
 
 model Room{
   id Int @id @default(autoincrement())
-  slug Int @unique
+  slug String @unique
   createdAt DateTime @default(now())
   chats Chat[]
   adminId String
