@@ -1,5 +1,6 @@
 import { BACKEND_URL } from "@repo/backend-common/config";
 import axios from "axios";
+import ChatRoomClient from "./ChatRoomClient";
 
 async function getChats(roomId:string){
     try {
@@ -14,4 +15,8 @@ async function getChats(roomId:string){
 
 export default async function ChatRoom({roomId}:{roomId:string}){
     const chats = await getChats(roomId);
+
+    return(
+        <ChatRoomClient messages={chats} id={roomId}></ChatRoomClient>
+    )
 }
