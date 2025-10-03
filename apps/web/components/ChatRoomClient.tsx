@@ -20,19 +20,17 @@ export default function ChatRoomClient({
       } catch (error) {
         console.log(error);
       }
-    }
+    } 
 
   }, [socket, id]);
 
   useEffect(() => {
     if (socket && !loading) {
-      socket.send(JSON.stringify({ type: "join", roomId: id }));
-
       socket.onmessage = (event) => {
         const parsedData = JSON.parse(event.data);
 
         if (parsedData.type === "chat") {
-            alert("Chat recieved")
+            // alert("Chat recieved")
           setChats((c) => [...c, { message: parsedData.message }]);
         }
       };
@@ -59,7 +57,7 @@ export default function ChatRoomClient({
       <button
         onClick={() => {
           socket?.send(
-            JSON.stringify({ type: "chat", roomId: id, messages: currentMsg })
+            JSON.stringify({ type: "chat", roomId: id, message: currentMsg })
           );
         }}
       >
