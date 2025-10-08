@@ -3,8 +3,9 @@ import { initDraw } from "@/draw";
 import { useEffect, useRef, useState } from "react";
 import Icon from "./Icon";
 import { Circle, Pencil, RectangleHorizontal } from "lucide-react";
+import { Game } from "@/draw/Game";
 
-export type Tool = "circle" | "rect" | "pencil";
+export type Tool = "circle" | "rect" | "pencil" | "move" | "eraser";
 export function Canvas({
     roomId,socket
 }:{
@@ -12,16 +13,25 @@ export function Canvas({
     socket: WebSocket;
 }){
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const [game,setGame] = useState<Game>();
     const [selectedTool, setSelectedTool] = useState<Tool>("circle");
-     useEffect(()=>{
 
+    useEffect(()=>{
+        game?.setTool(selectedTool);
+    },[selectedTool,game]);
+
+    useEffect(()=>{
         const canvas = canvasRef.current
         if (!canvas){
             return;
         }
         canvas.height = window.innerHeight;
         canvas.width = window.innerWidth;
-        initDraw(canvas, roomId, socket)
+        const g = new Game(canvas,roomId,socket);
+        setGame(g);
+        return ()=>{
+            g.destroy();
+        }
      }, [canvasRef]);
 
      return <div className="bg-black flex text-red-500">
