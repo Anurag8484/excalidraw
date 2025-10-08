@@ -2,7 +2,7 @@
 import { initDraw } from "@/draw";
 import { useEffect, useRef, useState } from "react";
 import Icon from "./Icon";
-import { Circle, Pencil, RectangleHorizontal } from "lucide-react";
+import { Circle, Hand, Pencil, RectangleHorizontal } from "lucide-react";
 import { Game } from "@/draw/Game";
 
 export type Tool = "circle" | "rect" | "pencil" | "move" | "eraser";
@@ -47,6 +47,7 @@ function Topbar({selectedTool, setSelectedTool}:{selectedTool:Tool, setSelectedT
             <Icon icon={<RectangleHorizontal />} onClick={()=>{setSelectedTool("rect")}} activated={selectedTool === "rect"} />
             <Icon icon={<Circle />} onClick={()=>{setSelectedTool("circle")}} activated={selectedTool === "circle"} />
             <Icon icon={<Pencil />} onClick={()=>{setSelectedTool("pencil")}} activated={selectedTool === "pencil"} />
+            <Icon icon={<Hand />} onClick={()=>{setSelectedTool("move")}} activated={selectedTool === "move"} />
         </div>
     )
 }
