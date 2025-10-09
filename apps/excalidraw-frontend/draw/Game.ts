@@ -1,5 +1,6 @@
 import { Tool } from "@/components/Canvas";
 import { getExistingShapes } from "./http";
+import { distanceFromPointToSegment } from "./Math";
 
 type Shape =
   | {
@@ -37,6 +38,7 @@ type Shape =
         private height = 0;
         private width = 0;
         private selectedTool: Tool = "circle";
+        private selectedShape: Shape |null = null;
 
         socket: WebSocket;
 
@@ -79,6 +81,40 @@ type Shape =
             };
         };
 
+        isInside(shape:Shape, x:number,y:number):boolean{
+            if (shape.type === "rect"){
+                return (
+                    x >= shape.x &&
+                    x <= shape.x + shape.width &&
+                    y>= shape.y &&
+                    y<= shape.y + shape.height
+                );
+            }
+            else if (shape.type === 'circle'){
+                const dx = x - shape.centerX;
+                const dy = y - shape.centerY;
+                const rx = Math.abs(shape.width);
+                const ry = Math.abs(shape.height);
+                return (dx*dx) / (rx * rx) + (dy * dy) / (ry * ry) <= 1;
+            }
+
+            else if(shape.type === 'pencil'){
+                if (!shape.points || shape.points.length < 2){
+                    return false;
+                };
+
+                for(let i = 1; i < shape.points.length; i++){
+                    const p1 = shape.points[i-1];
+                    const p2 = shape.points[i];
+                    const dist = distanceFromPointToSegment(x,y,p1.x,p1.y,p2.x,p2.y);
+                    if(dist < 5)return true;
+                }
+                return false;
+            }
+
+            return false;
+        }
+
         clearCanvas(){
               this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
               this.ctx.fillStyle = "rgba(0,0,0)";
@@ -110,6 +146,9 @@ type Shape =
             this.clicked = true;
             this.startX = e.clientX;
             this.startY = e.clientY;
+            const rect = this.canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
             if(this.selectedTool === 'pencil'){
                 this.currentPath = [{x:e.offsetX,y:e.offsetY}];
             }
