@@ -94,6 +94,11 @@ wss.on("connection", function connection(ws, request) {
         }
     }
 
+    if (parsedData.type === 'update'){
+        const roomId = parsedData.roomId;
+        const chatId = parsedData.chatId
+    }
+
     if (parsedData.type === "leave"){
         const user = users.find(x=>x.ws === ws);
         if (!user){
