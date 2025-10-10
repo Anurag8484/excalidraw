@@ -9,17 +9,20 @@ type Shape =
       y: number;
       width: number;
       height: number;
+      id?: number
     }
-  | {
+    | {
       type: "circle";
       centerX: number;
       centerY: number;
       width: number;
       height: number;
+      id?: number
     }
-  | {
+    | {
       type: "pencil";
       points: { x: number; y: number }[];
+      id?: number
     };
 
 export class Game {
@@ -66,9 +69,9 @@ export class Game {
   }
 
   async init() {
+    this.clearCanvas();
     this.existingShapes = await getExistingShapes(this.roomId);
     console.log(this.existingShapes);
-    this.clearCanvas();
   }
 
   initHandlers() {
@@ -207,7 +210,7 @@ export class Game {
         x: this.mouseX,
         y: this.mouseY,
         height,
-        width
+        width,
       };
     } else if (selectedTool === "circle") {
       const width = (x - this.mouseX) / 2;
@@ -226,10 +229,11 @@ export class Game {
       };
       this.currentPath = [];
     } else if (selectedTool === "move") {
+      console.log("check 1")
         if (this.activeShape){
             this.socket.send(
               JSON.stringify({
-                type: "chat",
+                type: "update",
                 message: JSON.stringify({ shape: this.activeShape }),
                 roomId: this.roomId,
               })
@@ -311,13 +315,13 @@ export class Game {
           x: p.x + dx,
           y: p.y + dy,
         }));
-        this.socket.send(
-          JSON.stringify({
-            type: "chat",
-            message: JSON.stringify({ shape: this.activeShape }),
-            roomId: this.roomId,
-          })
-        );
+        // this.socket.send(
+        //   JSON.stringify({
+        //     type: "chat",
+        //     message: JSON.stringify({ shape: this.activeShape }),
+        //     roomId: this.roomId,
+        //   })
+        // );
       }
       this.prevMouseX = this.mouseX;
       this.prevMouseY = this.mouseY;

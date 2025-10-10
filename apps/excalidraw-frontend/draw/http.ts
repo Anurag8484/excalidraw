@@ -7,8 +7,9 @@ export async function getExistingShapes(roomId: string) {
     const res = await axios.get(`${BACKEND_URL}/chat/${roomId}`);
     const messages = res.data.messages;
 
-    const shapes = messages.map((x: { message: string }) => {
+    const shapes = messages.map((x: { message: string, id: number }) => {
       const messageData = JSON.parse(x.message);
+      messageData.shape.id = x.id;
       return messageData.shape;
     });
     return shapes;
