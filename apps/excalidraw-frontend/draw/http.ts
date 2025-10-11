@@ -12,6 +12,8 @@ export async function getExistingShapes(roomId: string) {
       messageData.shape.id = x.id;
       return messageData.shape;
     });
+    // console.log("-----")
+    // console.log(shapes)
     return shapes;
   } catch (error) {
     console.log(error);

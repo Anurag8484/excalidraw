@@ -69,9 +69,9 @@ export class Game {
   }
 
   async init() {
-    this.clearCanvas();
     this.existingShapes = await getExistingShapes(this.roomId);
     console.log(this.existingShapes);
+    this.clearCanvas();
   }
 
   initHandlers() {
@@ -109,7 +109,7 @@ export class Game {
         const p1 = shape.points[i - 1];
         const p2 = shape.points[i];
         const dist = distanceFromPointToSegment(x, y, p1.x, p1.y, p2.x, p2.y);
-        console.log(`distance ${dist}`);
+        // console.log(`distance ${dist}`);
         if (dist < 5) return true;
       }
       return false;
@@ -244,10 +244,7 @@ export class Game {
     }
 
     if (!shape) return;
-
-    this.existingShapes.push(shape);
-    this.clearCanvas();
-    this.socket.send(
+    const shapeId = this.socket.send(
       JSON.stringify({
         type: "chat",
         message: JSON.stringify({
@@ -256,6 +253,15 @@ export class Game {
         roomId: this.roomId,
       })
     );
+    console.log("42@#423423")
+    console.log(shapeId)
+
+    this.existingShapes.push(shape);
+    // console.log(shape)
+    // const curShape = this.existingShapes[-1];
+    this.clearCanvas();
+    // console.log("*****")
+    // console.log(curShape)
   };
 
   mouseMoveHandler = (e: MouseEvent) => {
@@ -325,6 +331,8 @@ export class Game {
       }
       this.prevMouseX = this.mouseX;
       this.prevMouseY = this.mouseY;
+      this.mouseX = x;
+      this.mouseY = y;
     }
   };
 

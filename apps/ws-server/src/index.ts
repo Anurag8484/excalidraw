@@ -64,17 +64,14 @@ wss.on("connection", function connection(ws, request) {
     if (parsedData.type === "chat"){
         const roomId = parsedData.roomId;
         const message = parsedData.message;
-        console.log(" Chat Checkpoint 1")
         try {
-            await prismaClient.chat.create({
+            const chat = await prismaClient.chat.create({
                 data:{
                     message,
                     room:{connect:{id:Number(roomId)}},
                     user:{connect:{id:userId}}
                 }
             });
-        console.log(" Chat Checkpoint 2 ~ Saved to DB");
-        console.log(users);
         
 
             users.forEach(user =>{
@@ -87,6 +84,7 @@ wss.on("connection", function connection(ws, request) {
                 }
             })
             console.log("Chat sent!");
+            return chat.id;
             
         } catch (error) {
             console.log(error)
