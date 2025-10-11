@@ -77,7 +77,7 @@ export class Game {
   initHandlers() {
     this.socket.onmessage = (event) => {
       const message = JSON.parse(event.data);
-      if (message.type === "chat") {
+      if (message.type === "created") {
         const parsedShape = JSON.parse(message.message);
         this.existingShapes.push(parsedShape.shape);
         this.clearCanvas();
@@ -167,9 +167,10 @@ export class Game {
     const clickedShape = this.existingShapes.find((shape) =>
       this.isInside(shape,x,y)
     );
-    console.log(clickedShape);
 
     if (this.selectedTool === "move") {
+      console.log("@34234234234")
+      console.log(clickedShape)
         if(clickedShape){
             this.activeShape = clickedShape;
             if (clickedShape.type === "rect") {
@@ -244,7 +245,7 @@ export class Game {
     }
 
     if (!shape) return;
-    const shapeId = this.socket.send(
+    this.socket.send(
       JSON.stringify({
         type: "chat",
         message: JSON.stringify({
@@ -253,15 +254,9 @@ export class Game {
         roomId: this.roomId,
       })
     );
-    console.log("42@#423423")
-    console.log(shapeId)
-
-    this.existingShapes.push(shape);
-    // console.log(shape)
-    // const curShape = this.existingShapes[-1];
+    this.existingShapes.push(shape)
     this.clearCanvas();
-    // console.log("*****")
-    // console.log(curShape)
+
   };
 
   mouseMoveHandler = (e: MouseEvent) => {
@@ -321,18 +316,11 @@ export class Game {
           x: p.x + dx,
           y: p.y + dy,
         }));
-        // this.socket.send(
-        //   JSON.stringify({
-        //     type: "chat",
-        //     message: JSON.stringify({ shape: this.activeShape }),
-        //     roomId: this.roomId,
-        //   })
-        // );
       }
-      this.prevMouseX = this.mouseX;
-      this.prevMouseY = this.mouseY;
-      this.mouseX = x;
-      this.mouseY = y;
+      this.prevMouseX = x;
+      this.prevMouseY = y;
+
+      this.clearCanvas();
     }
   };
 

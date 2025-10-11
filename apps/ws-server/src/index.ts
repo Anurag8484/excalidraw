@@ -84,7 +84,13 @@ wss.on("connection", function connection(ws, request) {
                 }
             })
             console.log("Chat sent!");
-            return chat.id;
+
+            ws.send(JSON.stringify({
+                type: 'created',
+                message: JSON.stringify({shape:{...message.shape,id:chat.id}}),
+                roomId
+            }))
+            
             
         } catch (error) {
             console.log(error)

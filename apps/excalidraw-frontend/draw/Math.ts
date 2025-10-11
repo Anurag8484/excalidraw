@@ -1,10 +1,10 @@
-export function distanceFromPointToSegment(px:number,py:number,x1:number,x2:number,y1:number,y2:number):number{
+export function distanceFromPointToSegment(px:number,py:number,x1:number,y1:number,x2:number,y2:number):number{
     const A = px - x1;
     const B = py - y1;
     const C = x2 - x1;
     const D = y2 - y1;
 
-    const dot = A * B * C * D;
+    const dot = A * B + C * D;
     const lenSq = C *C  + D*D;
     let param  = -1;
     if (lenSq!==0) param = dot/lenSq;
