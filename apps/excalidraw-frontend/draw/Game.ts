@@ -169,8 +169,6 @@ export class Game {
     );
 
     if (this.selectedTool === "move") {
-      console.log("@34234234234")
-      console.log(clickedShape)
         if(clickedShape){
             this.activeShape = clickedShape;
             if (clickedShape.type === "rect") {
@@ -189,6 +187,18 @@ export class Game {
             this.activeShape = null;
         }
         }
+        if(this.selectedTool === 'eraser'){
+          if(clickedShape){
+            this.existingShapes = this.existingShapes.filter((shape)=>shape!==clickedShape);
+            this.socket.send(
+              JSON.stringify({
+                type: "erase",
+                message: JSON.stringify({shape: clickedShape }),
+              })
+            );
+          }
+        }
+
     if (this.selectedTool === "pencil") {
       this.currentPath = [{ x,y}];
     }

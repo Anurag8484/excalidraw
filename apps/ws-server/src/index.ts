@@ -98,6 +98,23 @@ wss.on("connection", function connection(ws, request) {
         }
     }
 
+    if (parsedData.type === 'erase'){
+                const msg = JSON.parse(parsedData.message);
+                console.log("in erase ws")
+                const shape = msg.shape;
+                const id = shape.id;
+                try {
+                    await prismaClient.chat.delete({
+                        where:{
+                            id
+                        }
+                    });
+                    console.log('erased')
+                } catch (error) {
+                    console.log(error);
+                }
+    }
+
     if (parsedData.type === 'update'){
 
         const msg = JSON.parse(parsedData.message);
