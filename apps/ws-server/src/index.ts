@@ -64,34 +64,32 @@ wss.on("connection", function connection(ws, request) {
     if (parsedData.type === "chat"){
         const roomId = parsedData.roomId;
         const message = parsedData.message;
+        const parsedMessage = JSON.parse(message);
+        const shape = parsedMessage.shape;
         try {
             const chat = await prismaClient.chat.create({
                 data:{
                     message,
                     room:{connect:{id:Number(roomId)}},
                     user:{connect:{id:userId}}
-                }
+                },
+            });
+
+            const shapewithId = {...shape, id: chat.id };
+
+            const payload = JSON.stringify({
+                type: 'created',
+                message: JSON.stringify({shape: shapewithId}),
+                roomId,
             });
         
 
             users.forEach(user =>{
                 if (user.rooms.includes(roomId)){
-                    user.ws.send(JSON.stringify({
-                        type: "created",
-                        message: message,
-                        roomId: roomId
-                    }))
+                    user.ws.send(payload);
                 }
             })
-            console.log("Chat sent!");
-
-            ws.send(JSON.stringify({
-                type: 'created',
-                message: JSON.stringify({shape:{...message.shape,id:chat.id}}),
-                roomId
-            }))
-            
-            
+            console.log("Chat created and Brodcast");
         } catch (error) {
             console.log(error)
             return;
@@ -120,7 +118,7 @@ wss.on("connection", function connection(ws, request) {
         const msg = JSON.parse(parsedData.message);
         const shape = msg.shape
         const id = shape.id;
-        // console.log(`Message ID: ${id}`)
+        console.log(`Message ID: ${id}`)
         try {
             await prismaClient.chat.update({
                 where:{

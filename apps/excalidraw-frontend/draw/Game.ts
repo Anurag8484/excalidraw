@@ -70,16 +70,17 @@ export class Game {
 
   async init() {
     this.existingShapes = await getExistingShapes(this.roomId);
-    console.log(this.existingShapes);
+    // console.log(this.existingShapes);
     this.clearCanvas();
   }
 
   initHandlers() {
     this.socket.onmessage = (event) => {
       const message = JSON.parse(event.data);
+      console.log(message);
       if (message.type === "created") {
-        const parsedShape = JSON.parse(message.message);
-        this.existingShapes.push(parsedShape.shape);
+        const parsed= JSON.parse(message.message);
+        this.existingShapes.push(parsed.shape);
         this.clearCanvas();
       }
     };
@@ -264,8 +265,9 @@ export class Game {
         roomId: this.roomId,
       })
     );
-    this.existingShapes.push(shape)
+    // this.existingShapes.push(shape)
     this.clearCanvas();
+    // this.init();
 
   };
 
