@@ -69,9 +69,10 @@ export class Game {
   }
 
   async init() {
+    console.log("init rendered");
     this.existingShapes = await getExistingShapes(this.roomId);
-    // console.log(this.existingShapes);
-    this.clearCanvas();
+    console.log(this.existingShapes);
+    this.redrawCanvas();
   }
 
   initHandlers() {
@@ -79,17 +80,21 @@ export class Game {
       const message = JSON.parse(event.data);
       console.log(message);
       if (message.type === "created") {
-        const parsed= JSON.parse(message.message);
+        const parsed = JSON.parse(message.message);
         this.existingShapes.push(parsed.shape);
         this.clearCanvas();
-      } else if(message.type === 'updated'){
+      } else if (message.type === "updated") {
         const parsed = JSON.parse(message.message);
-        const idx = this.existingShapes.findIndex((s)=>s.id === parsed.shape.id);
-        if (idx!== -1) this.existingShapes[idx] = parsed.shape;
+        const idx = this.existingShapes.findIndex(
+          (s) => s.id === parsed.shape.id
+        );
+        if (idx !== -1) this.existingShapes[idx] = parsed.shape;
         this.clearCanvas();
-      }else if(message.type === 'erased'){
+      } else if (message.type === "erased") {
         const parsed = JSON.parse(message.message);
-        this.existingShapes =  this.existingShapes.filter((shape) => shape.id !== parsed.shape.id);
+        this.existingShapes = this.existingShapes.filter(
+          (shape) => shape.id !== parsed.shape.id
+        );
         this.clearCanvas();
       }
     };
@@ -128,9 +133,45 @@ export class Game {
     return false;
   }
 
+  redrawCanvas() {
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    this.ctx.fillStyle = "black";
+    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+    this.existingShapes.forEach((shape) => this.drawShape(shape));
+  }
+  drawShape(shape: Shape) {
+    this.ctx.strokeStyle = "white";
+    if (shape.type === "rect") {
+      this.ctx.strokeStyle = "rgba(255,255,255)";
+      this.ctx.strokeRect(shape.x, shape.y, shape.width, shape.height);
+    } else if (shape.type === "circle") {
+      this.ctx.beginPath();
+      this.ctx.ellipse(
+        shape.centerX,
+        shape.centerY,
+        Math.abs(shape.width),
+        Math.abs(shape.height),
+        0,
+        0,
+        Math.PI * 2
+      );
+      this.ctx.stroke();
+      this.ctx.closePath();
+    } else if (shape.type === "pencil") {
+      if (!shape.points || shape.points.length < 2) return;
+      this.ctx.beginPath();
+      for (let i = 1; i < shape.points.length; i++) {
+        this.ctx.moveTo(shape.points[i - 1].x, shape.points[i - 1].y);
+        this.ctx.lineTo(shape.points[i].x, shape.points[i].y);
+      }
+      this.ctx.stroke();
+      this.ctx.closePath();
+    }
+  }
   clearCanvas() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    this.ctx.fillStyle = "rgba(0,0,0)";
+    this.ctx.fillStyle = "rgba(0,0,0,1)";
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
     this.existingShapes.map((shape) => {
@@ -175,43 +216,48 @@ export class Game {
     this.prevMouseY = y;
 
     const clickedShape = this.existingShapes.find((shape) =>
-      this.isInside(shape,x,y)
+      this.isInside(shape, x, y)
     );
 
     if (this.selectedTool === "move") {
-        if(clickedShape){
-            this.activeShape = clickedShape;
-            if (clickedShape.type === "rect") {
-                this.offSetX = x - clickedShape.x;
-                this.offSetY = y - clickedShape.y;
-            } else if (clickedShape.type === "circle") {
-                this.offSetX = x - clickedShape.centerX;
-                this.offSetY = y - clickedShape.centerY;
-            } else if (clickedShape.type === "pencil" && clickedShape.points.length) {
-                console.log("pencil clicked");
-                const first = clickedShape.points[0];
-                this.offSetX = x - first.x;
-                this.offSetY = y - first.y;
-            }
-        }else{
-            this.activeShape = null;
+      if (clickedShape) {
+        this.activeShape = clickedShape;
+        if (clickedShape.type === "rect") {
+          this.offSetX = x - clickedShape.x;
+          this.offSetY = y - clickedShape.y;
+        } else if (clickedShape.type === "circle") {
+          this.offSetX = x - clickedShape.centerX;
+          this.offSetY = y - clickedShape.centerY;
+        } else if (
+          clickedShape.type === "pencil" &&
+          clickedShape.points.length
+        ) {
+          console.log("pencil clicked");
+          const first = clickedShape.points[0];
+          this.offSetX = x - first.x;
+          this.offSetY = y - first.y;
         }
-        }
-        if(this.selectedTool === 'eraser'){
-          if(clickedShape){
-            this.existingShapes = this.existingShapes.filter((shape)=>shape!==clickedShape);
-            this.socket.send(
-              JSON.stringify({
-                type: "erase",
-                message: JSON.stringify({shape: clickedShape }),
-                roomId:this.roomId
-              })
-            );
-          }
-        }
+      } else {
+        this.activeShape = null;
+      }
+    }
+    if (this.selectedTool === "eraser") {
+      if (clickedShape) {
+        this.existingShapes = this.existingShapes.filter(
+          (shape) => shape !== clickedShape
+        );
+        this.socket.send(
+          JSON.stringify({
+            type: "erase",
+            message: JSON.stringify({ shape: clickedShape }),
+            roomId: this.roomId,
+          })
+        );
+      }
+    }
 
     if (this.selectedTool === "pencil") {
-      this.currentPath = [{ x,y}];
+      this.currentPath = [{ x, y }];
     }
   };
 
@@ -242,7 +288,7 @@ export class Game {
         centerX: this.mouseX + width,
         centerY: this.mouseY + height,
         width,
-        height
+        height,
       };
     } else if (selectedTool === "pencil") {
       shape = {
@@ -251,20 +297,19 @@ export class Game {
       };
       this.currentPath = [];
     } else if (selectedTool === "move") {
-      console.log("check 1")
-        if (this.activeShape){
-            this.socket.send(
-              JSON.stringify({
-                type: "update",
-                message: JSON.stringify({ shape: this.activeShape }),
-                roomId: this.roomId,
-              })
-            );
-        }
+      console.log("check 1");
+      if (this.activeShape) {
+        this.socket.send(
+          JSON.stringify({
+            type: "update",
+            message: JSON.stringify({ shape: this.activeShape }),
+            roomId: this.roomId,
+          })
+        );
+      }
       this.activeShape = null;
       this.clearCanvas();
     }
-
     if (!shape) return;
     this.socket.send(
       JSON.stringify({
@@ -278,7 +323,6 @@ export class Game {
     // this.existingShapes.push(shape)
     this.clearCanvas();
     // this.init();
-
   };
 
   mouseMoveHandler = (e: MouseEvent) => {
