@@ -98,7 +98,6 @@ wss.on("connection", function connection(ws, request) {
 
     if (parsedData.type === 'erase'){
                 const msg = JSON.parse(parsedData.message);
-                console.log("in erase ws")
                 const shape = msg.shape;
                 const id = shape.id;
                 try {
@@ -107,7 +106,18 @@ wss.on("connection", function connection(ws, request) {
                             id
                         }
                     });
-                    console.log('erased')
+                    users.forEach((user) => {
+                      if (user.rooms.includes(parsedData.roomId)) {
+                        user.ws.send(
+                          JSON.stringify({
+                            type: "erased",
+                            message: parsedData.message,
+                            roomId: parsedData.roomId,
+                          })
+                        );
+                      }
+                    });
+                    console.log('erased & broadcasted')
                 } catch (error) {
                     console.log(error);
                 }
@@ -128,11 +138,18 @@ wss.on("connection", function connection(ws, request) {
                     message:parsedData.message
                 }
             });
-            console.log("Shape updated")
-            return;
+            users.forEach((user)=>{
+                if (user.rooms.includes(parsedData.roomId)){
+                    user.ws.send(JSON.stringify({
+                        type:'updated',
+                        message: parsedData.message,
+                        roomId: parsedData.roomId
+                    }))
+                }
+            })
+            console.log("Shape updated and broadcasted")
         } catch (error) {
             console.log(error);
-            return;
         }
     }
 

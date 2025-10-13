@@ -82,6 +82,15 @@ export class Game {
         const parsed= JSON.parse(message.message);
         this.existingShapes.push(parsed.shape);
         this.clearCanvas();
+      } else if(message.type === 'updated'){
+        const parsed = JSON.parse(message.message);
+        const idx = this.existingShapes.findIndex((s)=>s.id === parsed.shape.id);
+        if (idx!== -1) this.existingShapes[idx] = parsed.shape;
+        this.clearCanvas();
+      }else if(message.type === 'erased'){
+        const parsed = JSON.parse(message.message);
+        this.existingShapes =  this.existingShapes.filter((shape) => shape.id !== parsed.shape.id);
+        this.clearCanvas();
       }
     };
   }
@@ -195,6 +204,7 @@ export class Game {
               JSON.stringify({
                 type: "erase",
                 message: JSON.stringify({shape: clickedShape }),
+                roomId:this.roomId
               })
             );
           }
