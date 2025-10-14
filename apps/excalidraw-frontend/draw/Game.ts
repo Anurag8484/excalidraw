@@ -127,7 +127,7 @@ export class Game {
         const p2 = shape.points[i];
         const dist = distanceFromPointToSegment(x, y, p1.x, p1.y, p2.x, p2.y);
         // console.log(`distance ${dist}`);
-        if (dist < 5) return true;
+        if (dist < 10) return true;
       }
       return false;
     }
@@ -257,6 +257,10 @@ export class Game {
       } else if (shape.type === "pencil") {
         if (!shape.points || shape.points.length < 2) return;
         this.ctx.beginPath();
+        this.ctx.lineWidth = 2.5;
+        this.ctx.lineCap = "round";
+        this.ctx.lineJoin = "round";
+        this.ctx.strokeStyle = "white"
         for (let i = 1; i < shape.points.length; i++) {
           this.ctx.moveTo(shape.points[i - 1].x, shape.points[i - 1].y);
           this.ctx.lineTo(shape.points[i].x, shape.points[i].y);
@@ -460,7 +464,7 @@ export class Game {
           x: p.x + dx,
           y: p.y + dy,
         }));
-      }
+      } 
       this.prevMouseX = x;
       this.prevMouseY = y;
 
