@@ -84,20 +84,20 @@ export class Game {
       if (message.type === "created") {
         const parsed = JSON.parse(message.message);
         this.existingShapes.push(parsed.shape);
-        this.clearCanvas();
+        this.redrawCanvas();
       } else if (message.type === "updated") {
         const parsed = JSON.parse(message.message);
         const idx = this.existingShapes.findIndex(
           (s) => s.id === parsed.shape.id
         );
         if (idx !== -1) this.existingShapes[idx] = parsed.shape;
-        this.clearCanvas();
+        this.redrawCanvas();
       } else if (message.type === "erased") {
         const parsed = JSON.parse(message.message);
         this.existingShapes = this.existingShapes.filter(
           (shape) => shape.id !== parsed.shape.id
         );
-        this.clearCanvas();
+        this.redrawCanvas();
       }
     };
   }
@@ -196,6 +196,35 @@ export class Game {
     this.prevMouseY = screenY;
   };
 
+  updateZooming = (e: WheelEvent) => {
+    e.preventDefault();
+    const zoomIntensity = 0.025;
+
+    const rect = this.canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    const direction = e.deltaY > 0 ? -1 : 1;
+    const scaleFactor = 1 + direction * zoomIntensity;
+
+    const oldScale = this.viewportTransform.scale;
+    const newScale = oldScale * scaleFactor;
+
+    if (newScale < 0.2 || newScale > 5) return;
+
+    this.viewportTransform.x =
+      x - (x - this.viewportTransform.x) * (newScale / oldScale);
+    this.viewportTransform.y =
+      y - (y - this.viewportTransform.y) * (newScale / oldScale);
+
+    this.viewportTransform.scale = newScale;
+    this.redrawCanvas();
+  };
+  onMouseWheel = (e:WheelEvent) => {
+    this.updateZooming(e);
+    this.redrawCanvas();
+
+  };
   toWorldCoords(x: number, y: number) {
     return {
       x: (x - this.viewportTransform.x) / this.viewportTransform.scale,
@@ -447,5 +476,9 @@ export class Game {
     this.canvas.addEventListener("mousedown", this.mouseDownHandler);
     this.canvas.addEventListener("mouseup", this.mouseUpHandler);
     this.canvas.addEventListener("mousemove", this.mouseMoveHandler);
+    this.canvas.addEventListener("wheel", this.updateZooming, {
+      passive: false,
+    });
+
   }
 }
