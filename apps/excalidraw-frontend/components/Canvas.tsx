@@ -2,10 +2,10 @@
 import { initDraw } from "@/draw";
 import { useEffect, useRef, useState } from "react";
 import Icon from "./Icon";
-import { Circle, Eraser, Hand, Pencil, RectangleHorizontal } from "lucide-react";
+import { Circle, Eraser, Hand, Move, Pencil, RectangleHorizontal } from "lucide-react";
 import { Game } from "@/draw/Game";
 
-export type Tool = "circle" | "rect" | "pencil" | "move" | "eraser";
+export type Tool = "circle" | "rect" | "pencil" | "move" | "eraser" | "panning";
 export function Canvas({
     roomId,socket
 }:{
@@ -49,6 +49,7 @@ function Topbar({selectedTool, setSelectedTool}:{selectedTool:Tool, setSelectedT
             <Icon icon={<Pencil />} onClick={()=>{setSelectedTool("pencil")}} activated={selectedTool === "pencil"} />
             <Icon icon={<Hand />} onClick={()=>{setSelectedTool("move")}} activated={selectedTool === "move"} />
             <Icon icon={<Eraser />} onClick={()=>{setSelectedTool("eraser")}} activated={selectedTool === "eraser"} />
+            <Icon icon={<Move />} onClick={()=>{setSelectedTool("panning")}} activated={selectedTool === "panning"} />
         </div>
     )
 }

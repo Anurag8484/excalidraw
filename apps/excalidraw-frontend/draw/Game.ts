@@ -9,20 +9,20 @@ type Shape =
       y: number;
       width: number;
       height: number;
-      id?: number
+      id?: number;
     }
-    | {
+  | {
       type: "circle";
       centerX: number;
       centerY: number;
       width: number;
       height: number;
-      id?: number
+      id?: number;
     }
-    | {
+  | {
       type: "pencil";
       points: { x: number; y: number }[];
-      id?: number
+      id?: number;
     };
 
 export class Game {
@@ -39,8 +39,10 @@ export class Game {
   private height = 0;
   private prevMouseX = 0;
   private prevMouseY = 0;
-  private width = 0;
-  private selectedTool: Tool = "circle";
+  // private scale = 0;
+  private viewportTransform = { x: 0, y: 0, scale: 1 };
+  private isPanning = false;
+  private selectedTool: Tool = "panning";
   private selectedShape: Shape | null = null;
   private activeShape: Shape | null = null;
 
@@ -134,7 +136,16 @@ export class Game {
   }
 
   redrawCanvas() {
+    this.ctx.setTransform(1, 0, 0, 1, 0, 0);
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    this.ctx.setTransform(
+      this.viewportTransform.scale,
+      0,
+      0,
+      this.viewportTransform.scale,
+      this.viewportTransform.x,
+      this.viewportTransform.y
+    );
     this.ctx.fillStyle = "black";
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
@@ -169,6 +180,29 @@ export class Game {
       this.ctx.closePath();
     }
   }
+
+  updatePanning = (e: MouseEvent) => {
+    const rect = this.canvas.getBoundingClientRect();
+    const screenX = e.clientX - rect.left;
+    const screenY = e.clientY - rect.top;
+
+    const dx = screenX - this.prevMouseX;
+    const dy = screenY - this.prevMouseY;
+
+    this.viewportTransform.x += dx;
+    this.viewportTransform.y += dy;
+
+    this.prevMouseX = screenX;
+    this.prevMouseY = screenY;
+  };
+
+  toWorldCoords(x: number, y: number) {
+    return {
+      x: (x - this.viewportTransform.x) / this.viewportTransform.scale,
+      y: (y - this.viewportTransform.y) / this.viewportTransform.scale,
+    };
+  }
+
   clearCanvas() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     this.ctx.fillStyle = "rgba(0,0,0,1)";
@@ -208,8 +242,10 @@ export class Game {
     this.clicked = true;
 
     const rect = this.canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const screenX = e.clientX - rect.left;
+    const screenY = e.clientY - rect.top;
+    const { x, y } = this.toWorldCoords(screenX, screenY);
+
     this.mouseX = x;
     this.mouseY = y;
     this.prevMouseX = x;
@@ -232,7 +268,7 @@ export class Game {
           clickedShape.type === "pencil" &&
           clickedShape.points.length
         ) {
-          console.log("pencil clicked");
+          // console.log("pencil clicked");
           const first = clickedShape.points[0];
           this.offSetX = x - first.x;
           this.offSetY = y - first.y;
@@ -259,13 +295,21 @@ export class Game {
     if (this.selectedTool === "pencil") {
       this.currentPath = [{ x, y }];
     }
+
+    if (this.selectedTool === "panning") {
+      this.isPanning = true;
+      const rect = this.canvas.getBoundingClientRect();
+      this.prevMouseX = e.clientX - rect.left;
+      this.prevMouseY = e.clientY - rect.top;
+    }
   };
 
   mouseUpHandler = (e: MouseEvent) => {
     this.clicked = false;
     const rect = this.canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const screenX = e.clientX - rect.left;
+    const screenY = e.clientY - rect.top;
+    const { x, y } = this.toWorldCoords(screenX, screenY);
 
     const selectedTool = this.selectedTool;
     let shape: Shape | null = null;
@@ -309,6 +353,9 @@ export class Game {
       }
       this.activeShape = null;
       this.clearCanvas();
+    } else if (selectedTool === "panning") {
+      this.isPanning = false;
+      return;
     }
     if (!shape) return;
     this.socket.send(
@@ -327,10 +374,12 @@ export class Game {
 
   mouseMoveHandler = (e: MouseEvent) => {
     if (!this.clicked) return;
-
+    this.redrawCanvas();
     const rect = this.canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const screenX = e.clientX - rect.left;
+    const screenY = e.clientY - rect.top;
+    const { x, y } = this.toWorldCoords(screenX, screenY);
+
     const selectedTool = this.selectedTool;
 
     this.clearCanvas();
@@ -387,6 +436,10 @@ export class Game {
       this.prevMouseY = y;
 
       this.clearCanvas();
+    } else if (selectedTool === "panning") {
+      this.updatePanning(e);
+      this.redrawCanvas();
+      return;
     }
   };
 
