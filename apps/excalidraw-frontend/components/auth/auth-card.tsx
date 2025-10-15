@@ -110,7 +110,7 @@ export function AuthCard({
               Already have an account?{" "}
               <Link
                 className="text-foreground underline underline-offset-4 hover:text-primary"
-                href="/login"
+                href="/signin"
               >
                 Log in
               </Link>

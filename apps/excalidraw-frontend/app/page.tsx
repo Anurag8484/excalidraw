@@ -1,5 +1,6 @@
 'use client'
-import { Button } from "@repo/ui/button";
+// import { Button } from "@repo/ui/button";
+import { Button } from "@/components/ui/button";
 import { Pencil, Users, Zap, Download, Share2, Layers } from "lucide-react";
 import { redirect } from "next/navigation";
 export default function Home() {
@@ -41,13 +42,16 @@ export default function Home() {
             </a>
           </div>
           <div className="flex items-center gap-3">
-            <Button className="" onClick={()=>{redToSignin()}} >
-              Log in
-            </Button>
             <Button
               className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
               Try for free
+            </Button>
+            <Button className="" onClick={()=>{redToSignin()}} >
+              Getting started
+            </Button>
+            <Button className="" onClick={()=>{redToSignin()}} >
+              Log in
             </Button>
           </div>
         </nav>
