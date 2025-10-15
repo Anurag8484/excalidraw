@@ -4,12 +4,15 @@ import type React from "react";
 import { Spinner } from "@/components/ui/spinner"; // show spinner during submit
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import axios from "axios";
+import { BACKEND_URL } from "@repo/backend-common/config";
+import { redirect } from "next/navigation";
 
 type Variant = "login" | "signup";
 
@@ -21,11 +24,55 @@ export function AuthCard({
   className?: string;
 }) {
   const [loading, setLoading] = useState(false);
+  const usernameRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
+  const fnameRef = useRef<HTMLInputElement>(null);
+  const lnameRef = useRef<HTMLInputElement>(null);
   const isLogin = variant === "login";
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
+    let username;
+    let password;
+    let firstName;
+    let lastName;
+    // console.log(isLogin)
+    if (
+      usernameRef.current?.value == null ||
+      fnameRef == null ||
+      lnameRef == null ||
+      passwordRef == null
+    ) {
+      alert("Please fill all inputs");
+    }else{
+      username = usernameRef.current.value;
+       firstName = fnameRef.current?.value;
+       lastName = lnameRef.current?.value;
+       password = passwordRef.current?.value;
+    }
+    if(isLogin){
+      try {
+        const res = await axios.post(`${BACKEND_URL}/signin`,{
+          username: username,
+          password: password        
+        })
+
+        if (res.status===500){
+          setLoading(false);
+        
+        }
+      } catch (error) {
+        
+      }
+    } else{
+      try {
+        
+      } catch (error) {
+        
+      }
+
+    }
     // Replace with your existing auth logic. This is purely presentational.
     setTimeout(() => setLoading(false), 600);
   }
@@ -44,28 +91,35 @@ export function AuthCard({
       </CardHeader>
       <CardContent>
         <form onSubmit={onSubmit} className="grid gap-4">
-          {!isLogin && (
-            <div className="grid gap-2">
-              <Label htmlFor="name">Name</Label>
-              <Input
-                id="name"
-                name="name"
-                placeholder="Your name"
-                autoComplete="name"
-              />
-            </div>
-          )}
           <div className="grid gap-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              inputMode="email"
-              placeholder="you@company.com"
-              autoComplete="email"
-            />
-          </div>
+         <Label htmlFor="name">Username</Label>
+              <Input
+                id="username"
+                name="name"
+                placeholder="username"
+                autoComplete="name"
+                ref={usernameRef}
+                />
+              </div>
+                {!isLogin && (
+                  <div className="grid gap-2">
+                    
+                    <Label htmlFor="name">First Name</Label>
+                    <Input
+                      id="fname"
+                      name="firstname"
+                      placeholder="Your First name"
+                      autoComplete="name"
+                    />
+                    <Label htmlFor="name">Last Name</Label>
+                    <Input
+                      id="lname"
+                      name="lname"
+                      placeholder="Your Last name if any else a space"
+                      autoComplete="name"
+                    />
+                  </div>
+                )}
           <div className="grid gap-2">
             <Label htmlFor="password">Password</Label>
             <Input
