@@ -146,15 +146,15 @@ export class Game {
       this.viewportTransform.x,
       this.viewportTransform.y
     );
-    this.ctx.fillStyle = "black";
+    this.ctx.fillStyle = "white";
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
     this.existingShapes.forEach((shape) => this.drawShape(shape));
   }
   drawShape(shape: Shape) {
-    this.ctx.strokeStyle = "white";
+    this.ctx.strokeStyle = "#1f2937";
     if (shape.type === "rect") {
-      this.ctx.strokeStyle = "rgba(255,255,255)";
+      this.ctx.strokeStyle = "#1f2937";
       this.ctx.strokeRect(shape.x, shape.y, shape.width, shape.height);
     } else if (shape.type === "circle") {
       this.ctx.beginPath();
@@ -220,10 +220,9 @@ export class Game {
     this.viewportTransform.scale = newScale;
     this.redrawCanvas();
   };
-  onMouseWheel = (e:WheelEvent) => {
+  onMouseWheel = (e: WheelEvent) => {
     this.updateZooming(e);
     this.redrawCanvas();
-
   };
   toWorldCoords(x: number, y: number) {
     return {
@@ -234,12 +233,12 @@ export class Game {
 
   clearCanvas() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    this.ctx.fillStyle = "rgba(0,0,0,1)";
+    this.ctx.fillStyle = "rgba(255,255,255,1)";
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
     this.existingShapes.map((shape) => {
       if (shape.type === "rect") {
-        this.ctx.strokeStyle = "rgba(255,255,255)";
+        this.ctx.strokeStyle = "#1f2937";
         this.ctx.strokeRect(shape.x, shape.y, shape.width, shape.height);
       } else if (shape.type === "circle") {
         this.ctx.beginPath();
@@ -260,7 +259,7 @@ export class Game {
         this.ctx.lineWidth = 2.5;
         this.ctx.lineCap = "round";
         this.ctx.lineJoin = "round";
-        this.ctx.strokeStyle = "white"
+        this.ctx.strokeStyle = "#1f2937";
         for (let i = 1; i < shape.points.length; i++) {
           this.ctx.moveTo(shape.points[i - 1].x, shape.points[i - 1].y);
           this.ctx.lineTo(shape.points[i].x, shape.points[i].y);
@@ -272,6 +271,8 @@ export class Game {
   }
 
   mouseDownHandler = (e: MouseEvent) => {
+    this.canvas.style.cursor = this.isPanning ? "grab" : "default";
+
     this.clicked = true;
 
     const rect = this.canvas.getBoundingClientRect();
@@ -335,9 +336,11 @@ export class Game {
       this.prevMouseX = e.clientX - rect.left;
       this.prevMouseY = e.clientY - rect.top;
     }
+    this.canvas.style.cursor = this.isPanning ? "grab" : "default";
   };
 
   mouseUpHandler = (e: MouseEvent) => {
+    this.canvas.style.cursor = this.isPanning ? "grab" : "default";
     this.clicked = false;
     const rect = this.canvas.getBoundingClientRect();
     const screenX = e.clientX - rect.left;
@@ -402,6 +405,8 @@ export class Game {
     );
     // this.existingShapes.push(shape)
     this.clearCanvas();
+    this.canvas.style.cursor = this.isPanning ? "grab" : "default";
+
     // this.init();
   };
 
@@ -416,7 +421,7 @@ export class Game {
     const selectedTool = this.selectedTool;
 
     this.clearCanvas();
-    this.ctx.strokeStyle = "rgba(255,255,255)";
+    this.ctx.strokeStyle = "#1f2937";
 
     if (selectedTool === "rect") {
       const width = x - this.mouseX;
@@ -464,7 +469,7 @@ export class Game {
           x: p.x + dx,
           y: p.y + dy,
         }));
-      } 
+      }
       this.prevMouseX = x;
       this.prevMouseY = y;
 
@@ -483,6 +488,5 @@ export class Game {
     this.canvas.addEventListener("wheel", this.updateZooming, {
       passive: false,
     });
-
   }
 }

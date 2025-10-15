@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Icon from "./Icon";
 import { Circle, Eraser, Hand, Move, Pencil, RectangleHorizontal } from "lucide-react";
 import { Game } from "@/draw/Game";
+import { CanvasTopbar } from "./Canvas/topbar";
 
 export type Tool = "circle" | "rect" | "pencil" | "move" | "eraser" | "panning";
 export function Canvas({
@@ -34,10 +35,20 @@ export function Canvas({
         }
      }, [canvasRef]);
 
-     return <div className="bg-black flex text-red-500">
-        <canvas className="" ref={canvasRef} width={1500} height={1000}>asdasd</canvas>
-        <Topbar selectedTool={selectedTool} setSelectedTool={setSelectedTool} />
-     </div>
+     return (
+       <div className="flex h-dvh flex-col bg-white">
+         <CanvasTopbar tool={selectedTool} setTool ={setSelectedTool}/>
+         <canvas className="" ref={canvasRef} width={1500} height={1000} />
+           
+       </div>
+     );
+
+    //  return (
+    //    <main className="flex h-dvh flex-col">
+    //              <canvas className="" ref={canvasRef} width={1500} height={1000}>asdasd</canvas>
+    //      {/* <CanvasTopbar /> */}
+    //    </main>
+    //  );
 }
 
 

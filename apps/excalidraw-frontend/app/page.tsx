@@ -7,6 +7,8 @@ export default function Home() {
   function redToSignin(){
     redirect('/signin')
   }
+  
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
