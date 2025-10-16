@@ -2,9 +2,8 @@
 
 import type React from "react";
 import { Spinner } from "@/components/ui/spinner"; // show spinner during submit
-
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { Dispatch, SetStateAction, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,18 +11,24 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import axios from "axios";
 import { BACKEND_URL } from "@repo/backend-common/config";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 type Variant = "login" | "signup";
 
 export function AuthCard({
   variant = "login",
   className,
+  errorMsg,
+  setErrorMsg
 }: {
   variant?: Variant;
   className?: string;
+  errorMsg?: string | null;
+  setErrorMsg: React.Dispatch<React.SetStateAction<string|null>>;
 }) {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
+  // const [errorMsg,setErrorMsg] = useState<String>("");
   const usernameRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
   const fnameRef = useRef<HTMLInputElement>(null);
@@ -53,16 +58,28 @@ export function AuthCard({
     }
     if(isLogin){
       try {
-        const res = await axios.post(`${BACKEND_URL}/signin`,{
+        console.log(username)
+        console.log(password)
+         const res = await axios.post(`${BACKEND_URL}/signin`,{
           username: username,
           password: password        
         })
+        localStorage.setItem("Authorization",res.data.token);
+        setLoading(false)
+        router.push("/")
 
-        if (res.status===500){
+
+      } catch (error:any) {
+
+        if (error.response && error.response.status===500){
+          setErrorMsg("Please ensure you input valid details")
+          console.log(errorMsg)
           setLoading(false);
         
+        }else if(error.response && error.response.status===403){
+          setErrorMsg("Invalid password!")
+          setLoading(false);
         }
-      } catch (error) {
         
       }
     } else{
@@ -74,16 +91,17 @@ export function AuthCard({
 
     }
     // Replace with your existing auth logic. This is purely presentational.
-    setTimeout(() => setLoading(false), 600);
+    // setTimeout(() => setLoading(false), 600);
   }
-
+  
   return (
     <Card
-      className={cn(
-        "mx-auto w-full max-w-sm anim-fade-up focus-within:ring-1 focus-within:ring-ring/30 hover-lift",
-        className
-      )}
+    className={cn(
+      "mx-auto w-full max-w-sm anim-fade-up focus-within:ring-1 focus-within:ring-ring/30 hover-lift",
+      className
+    )}
     >
+      
       <CardHeader>
         <CardTitle className="text-center text-lg font-medium">
           {isLogin ? "Welcome back" : "Create your account"}
@@ -92,34 +110,33 @@ export function AuthCard({
       <CardContent>
         <form onSubmit={onSubmit} className="grid gap-4">
           <div className="grid gap-2">
-         <Label htmlFor="name">Username</Label>
+            <Label htmlFor="name">Username</Label>
+            <Input
+              id="username"
+              name="name"
+              placeholder="username"
+              autoComplete="name"
+              ref={usernameRef}
+            />
+          </div>
+          {!isLogin && (
+            <div className="grid gap-2">
+              <Label htmlFor="name">First Name</Label>
               <Input
-                id="username"
-                name="name"
-                placeholder="username"
+                id="fname"
+                name="firstname"
+                placeholder="Your First name"
                 autoComplete="name"
-                ref={usernameRef}
-                />
-              </div>
-                {!isLogin && (
-                  <div className="grid gap-2">
-                    
-                    <Label htmlFor="name">First Name</Label>
-                    <Input
-                      id="fname"
-                      name="firstname"
-                      placeholder="Your First name"
-                      autoComplete="name"
-                    />
-                    <Label htmlFor="name">Last Name</Label>
-                    <Input
-                      id="lname"
-                      name="lname"
-                      placeholder="Your Last name if any else a space"
-                      autoComplete="name"
-                    />
-                  </div>
-                )}
+              />
+              <Label htmlFor="name">Last Name</Label>
+              <Input
+                id="lname"
+                name="lname"
+                placeholder="Your Last name if any else a space"
+                autoComplete="name"
+              />
+            </div>
+          )}
           <div className="grid gap-2">
             <Label htmlFor="password">Password</Label>
             <Input
@@ -127,6 +144,7 @@ export function AuthCard({
               name="password"
               type="password"
               placeholder="••••••••"
+              ref={passwordRef}
               autoComplete={isLogin ? "current-password" : "new-password"}
             />
           </div>
